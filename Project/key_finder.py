@@ -1,6 +1,8 @@
 import json
 import pprint
-
+import argparse 
+import os.path
+import re
 
 def get_keys(d_or_l, keys_list):  # function to iterate through a dictionary OR list and recursively find all keys
     if isinstance(d_or_l, dict):
@@ -19,20 +21,34 @@ def get_keys(d_or_l, keys_list):  # function to iterate through a dictionary OR 
     else:
         print("Skipping item of type: {}".format(type(d_or_l)))
 
+def is_valid_file(parser, arg):
+    if not os.path.exists(arg):
+        parser.error("The file %s does not exist!" % arg)
+    else:
+        return open(arg, 'r') # return an open file handle
+  
+def main():
+    parser = argparse.ArgumentParser(description = "PII detection tool")
+    parser.add_argument("-i", dest = "filename", required = True, help = "input json file", metavar = "FILE",
+                         type = lambda x: is_valid_file(parser, x))
+    args = parser.parse_args()
+    emp_dict = json.load(args.filename)
+    args.filename.close()
 
-if __name__ == '__main__':
-    with open('employees.json', 'r') as f:  # create a dictionary object from json file to work on
-        emp_dict = json.load(f)
+    with open('rules.txt') as rules_file:
+         rules = [line.rstrip() for line in rules_file] # get rid of pesky new line character
 
-    sensitive_keys = ['name', 'firstName', 'lastName', 'phoneNumber', 'emailAddress']
-    sensitive_items = 0
     count = 0
-    keys_list = []
+    keys_list = [] 
     get_keys(emp_dict, keys_list)
     keys_list = list(set(keys_list))  # remove duplicate keys from 'keys_list'
-    for key in keys_list:
-        count += 1
-        if key in sensitive_keys:
-            sensitive_items += 1
-    pprint.pprint(keys_list)  # nicer view of keys in the output than print()
-    print("{}".format((sensitive_items * 100) / count) + "% of this database is potentially non-GDPR compliant")
+   # print(keys_list)
+    for rule in rules:
+        for key in keys_list:
+            if re.search(rule, key, re.IGNORECASE):
+                count += 1
+   # print("{}".format((sensitive_items * 100) / count) + "% of this database is potentially non-GDPR compliant")
+    #print(count)
+
+if __name__ == '__main__':
+    main()

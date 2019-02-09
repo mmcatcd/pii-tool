@@ -1,0 +1,7 @@
+name
+phone
+number
+email
+address
+id
+password
