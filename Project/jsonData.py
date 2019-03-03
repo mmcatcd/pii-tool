@@ -1,20 +1,8 @@
 import json
 import pandas as pd
 import re
-import argparse
-import os
 
 class jsonData:
-
-    def rules(self):    # function that takes rules from file and turns them into a dictionary of format rule:RegEx
-        f = open('rules.txt', 'r')
-        rules_dict = {}
-        for line in f:
-            k, v = line.strip().split(':')
-            rules_dict[k.strip()] = v.strip()
-        f.close()
-        return rules_dict
-
 
     def print_full(self, x):    # function that prints full dataframe for display/debugging purposes
         pd.set_option('display.max_rows', len(x))
@@ -30,7 +18,7 @@ class jsonData:
         pd.reset_option('display.max_colwidth')
 
 
-    def flatten_json(self, y):  # function to recursively turn nested jsons into 
+    def flatten_json(self, y):  # function to flatten jsons
         out = {}
 
         def flatten(x, name=''):
@@ -49,7 +37,7 @@ class jsonData:
         return out
 
 
-    def json_to_dataframe(self, filename):
+    def json_to_dataframe(self, filename):  # function to turn flsttened json into a pandas dataframe
         jsonObj = json.load(filename)
         flat = self.flatten_json(jsonObj)
 

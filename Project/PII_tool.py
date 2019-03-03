@@ -1,6 +1,3 @@
-import json
-import pandas as pd
-import re
 import argparse
 import os
 from jsonData import jsonData
@@ -29,6 +26,7 @@ def main():
                          type = lambda x: is_valid_file(parser, x))
     args = parser.parse_args()
     filename = args.filename.name
+    
     if filename.endswith('.json'):
         jsonObj = jsonData()
         converted = jsonObj.json_to_dataframe(args.filename)
