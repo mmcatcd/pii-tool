@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import re
+import ijson
 
 class jsonData:
 
@@ -53,12 +54,18 @@ class jsonData:
         return results
 
 
-    def run(self, rules_dict, df):
-        for rule in rules_dict:
-            for column in list(df):
-                if re.search(rule, column, re.IGNORECASE): 
+    def run(self, rules_dict, filename):
+         writefile = open('report.txt', 'w+')
+         for rule in rules_dict:
+            a = open(filename, 'r')
+            parser = ijson.parse(a)
+            for prefix, event, value in parser:
+                if re.search(rule, prefix, re.IGNORECASE):
                     if rules_dict.get(rule) != '':
-                        r = re.compile(rules_dict.get(rule))
-                        matched_vals = list(filter(r.match, df[column]))
-                        print(matched_vals) 
+                        r = rules_dict.get(rule)
+                        if re.match(r, value):
+                            string = "Location: %s, Value:%s" % (prefix, value)
+                            writefile.write(string + "\n")
+       
+
 

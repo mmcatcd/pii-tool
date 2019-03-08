@@ -26,13 +26,12 @@ def main():
                          type = lambda x: is_valid_file(parser, x))
     args = parser.parse_args()
     filename = args.filename.name
-    
+    rules_dict = rules()   #rules from rules file
+
     if filename.endswith('.json'):
         jsonObj = jsonData()
-        converted = jsonObj.json_to_dataframe(args.filename)
+        jsonObj.run(rules_dict, filename)
         args.filename.close()
-        rules_dict = rules()   #rules from rules file
-        jsonObj.run(rules_dict, converted)
     
     elif filename.endswith('.sql'):
         print("Do something...")
