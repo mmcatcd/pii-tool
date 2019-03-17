@@ -1,6 +1,7 @@
 import argparse
 import os
 from jsonData import jsonData
+from csvData import csvData
 
 
 def is_valid_file(parser, arg):
@@ -36,14 +37,17 @@ def main():
     if filename.endswith('.json'):
         jsonObj = jsonData()
         jsonObj.run(rules_dict, filename)
-        args.filename.close()
+        
     
     if filename.endswith('.sql'):
         print("Do something...")
 
     if filename.endswith('.csv'):
-        print("Do something...")
+        csvObj = csvData()
+        report_data = csvObj.run(rules_dict, filename)
+        csvObj.write_report(report_data)
 
+    args.filename.close()
 
 if __name__ == '__main__':
     main()
