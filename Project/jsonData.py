@@ -1,7 +1,8 @@
-import json
 import pandas as pd
 import re
 import ijson
+import spacy
+import json
 
 class jsonData:
 
@@ -55,17 +56,36 @@ class jsonData:
 
 
     def run(self, rules_dict, filename):
-         writefile = open('report.txt', 'w+')
-         for rule in rules_dict:
+        nlp = spacy.load('en_core_web_sm')
+        report_data = []
+
+        ## rule based approach
+        for rule in rules_dict:
             a = open(filename, 'r')
             parser = ijson.parse(a)
             for prefix, event, value in parser:
                 if re.search(rule, prefix, re.IGNORECASE):
                     if rules_dict.get(rule) != '':
-                        r = rules_dict.get(rule)
-                        if re.match(r, value):
-                            string = "Location: %s, Value:%s" % (prefix, value)
-                            writefile.write(string + "\n")
-       
+                        r = re.compile(rules_dict.get(rule))
+                        if r.match(value):
+                            string = "Location: %s, Value: %s" % (prefix, value)
+                            report_data.append(string)
+        
+        ## NLP based approach
+        a = open(filename, 'r')
+        parser = ijson.parse(a)
+        for prefix, event, value in parser:
+            if isinstance(value, str):
+                doc = nlp(value)
+                for ent in doc.ents:
+                    if ent.label_ == 'PERSON':
+                        string = "POSSIBLE PII @: %s, Value: %s" % (prefix, value)
+                        report_data.append(string)
+                        
+        return report_data    
 
+
+    def write_report(self, report_data):
+        writefile = open('report.txt', 'w+')
+        [writefile.write(line + "\n") for line in report_data]
 
