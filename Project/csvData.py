@@ -6,7 +6,6 @@ import dask.dataframe as dd
 
 class csvData:
 
-
     def print_full(self, x):    # function that prints full dataframe for display/debugging purposes
         pd.set_option('display.max_rows', len(x))
         pd.set_option('display.max_columns', None)
@@ -21,7 +20,10 @@ class csvData:
         pd.reset_option('display.max_colwidth')
 
 
-    def run(self, rules_dict, filename, df):
+    def run(self, rules_dict, filename):
+        df = pd.read_csv(filename)
+        df.fillna("NaN!", inplace = True)
+      #  df = dd.from_pandas(df, npartitions=4)
         nlp = spacy.load('en_core_web_sm')
         report_data = []
 
@@ -51,23 +53,14 @@ class csvData:
                         if ent.label_ == 'PERSON':
                             string = "POSSIBLE PII @: %s, Value: %s" % (column + str(np.where(df[column]==val)[0] + 1), val) 
                             report_data.append(string)
-                        #print(ent.text, ent.start_char, ent.end_char, ent.label_)
+                            # print(ent.text, ent.start_char, ent.end_char, ent.label_)
 
-        return report_data              
+        return report_data
 
-    def dask_run(self, rules_dict, filename):
+    def parallelize_run(self, rules_dict, filename):
         df = pd.read_csv(filename)
         df.fillna("nan!", inplace = True)
-        df = dd.from_pandas(df, npartitions=8)
-
-        df.map_partitions(self.run(rules_dict, filename, df), columns=len(df)/8 ).compute(scheduler='processes')
-
-
-
-
-
-
-
+        df = dd.from_pandas(df, npartitions=4)
 
 
     def write_report(self, report_data):

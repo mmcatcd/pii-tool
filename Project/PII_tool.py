@@ -25,7 +25,6 @@ def rules():   # function that takes rules from file and turns them into a dicti
         quit()
     
 
-
 def main():
     parser = argparse.ArgumentParser(description = "PII detection tool")
     parser.add_argument("-i", dest = "filename", required = True, help = "input json file", metavar = "FILE",
@@ -36,7 +35,8 @@ def main():
 
     if filename.endswith('.json'):
         jsonObj = jsonData()
-        jsonObj.run(rules_dict, filename)
+        report_data = jsonObj.run(rules_dict, filename)
+        jsonObj.write_report(report_data)
         
     
     if filename.endswith('.sql'):
@@ -44,7 +44,7 @@ def main():
 
     if filename.endswith('.csv'):
         csvObj = csvData()
-        report_data = csvObj.dask_run(rules_dict, filename)
+        report_data = csvObj.run(rules_dict, filename)
         csvObj.write_report(report_data)
 
     args.filename.close()
