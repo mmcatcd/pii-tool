@@ -44,7 +44,7 @@ def main():
 
     if filename.endswith('.csv'):
         csvObj = csvData()
-        report_data = csvObj.run(rules_dict, filename)
+        report_data = csvObj.dask_run(rules_dict, filename)
         csvObj.write_report(report_data)
 
     args.filename.close()

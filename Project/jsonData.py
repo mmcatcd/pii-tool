@@ -3,6 +3,7 @@ import pandas as pd
 import re
 import ijson
 import spacy
+from spacy.lang.en.examples import sentences
 
 class jsonData:
 
@@ -56,7 +57,6 @@ class jsonData:
 
 
     def run(self, rules_dict, filename):
-        spacy.load('en_core_web_sm')
         writefile = open('report.txt', 'w+')
         for rule in rules_dict:
             a = open(filename, 'r')
