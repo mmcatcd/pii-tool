@@ -64,7 +64,7 @@ class jsonData:
                     if rules_dict.get(rule) != '':
                         r = rules_dict.get(rule)
                         if re.match(r, value):
-                            string = "Location: %s, Value:%s" % (prefix, value)
+                            string = "Location: %s, Value: %s" % (prefix, value)
                             writefile.write(string + "\n")
        
 

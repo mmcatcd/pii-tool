@@ -1,7 +1,7 @@
-name :
-phone :
-number:
-email :
-address :
-id : ^[0-9]$
-password : 
+name ->
+phone -> (\d?\W*(?:\(?\d{3}\)?\W*)?\d{3}\W*\d{4})
+number ->
+email -> ([a-z0-9!#$%&'*+\/=?^_`{|.}~-]+@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)
+address ->
+id -> ^[0-9]$
+password ->

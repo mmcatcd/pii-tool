@@ -10,14 +10,19 @@ def is_valid_file(parser, arg):
         return open(arg, 'r') # return an open file handle
 
 
-def rules():    # function that takes rules from file and turns them into a dictionary of format rule:RegEx
-    f = open('rules.txt', 'r')
-    rules_dict = {}
-    for line in f:
-        k, v = line.strip().split(':')
-        rules_dict[k.strip()] = v.strip()
-    f.close()
-    return rules_dict
+def rules():   # function that takes rules from file and turns them into a dictionary of format rule:RegEx
+    try:
+        f = open('rules.txt', 'r')
+        rules_dict = {}
+        for line in f:
+            k, v = line.strip().split('->')
+            rules_dict[k.strip()] = v.strip()
+        f.close()
+        return rules_dict
+    except ValueError:
+        print("ERROR: Make sure rules are in the form 'rule -> regex' and try again")
+        quit()
+    
 
 
 def main():
@@ -33,10 +38,10 @@ def main():
         jsonObj.run(rules_dict, filename)
         args.filename.close()
     
-    elif filename.endswith('.sql'):
+    if filename.endswith('.sql'):
         print("Do something...")
 
-    elif filename.endswith('.csv'):
+    if filename.endswith('.csv'):
         print("Do something...")
 
 
