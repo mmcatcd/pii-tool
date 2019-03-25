@@ -58,6 +58,7 @@ class jsonData:
     def run(self, rules_dict, filename):
         nlp = spacy.load('en_core_web_sm')
         report_data = []
+        confidence_values = []
 
         ## rule based approach
         for rule in rules_dict:
