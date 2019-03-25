@@ -40,10 +40,9 @@ def main():
     rules_dict = rules()   #rules from rules file
     if filename.endswith('.json'):
         jsonObj = jsonData()
-        report_data = jsonObj.run(rules_dict, filename)
-        jsonObj.write_report(report_data)
+        jsonObj.run(rules_dict, sensitivity_scores, filename)
         
-    
+        
     if filename.endswith('.sql'):
         print("")
         #sqlObj = sqlData()
