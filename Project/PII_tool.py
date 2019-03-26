@@ -40,8 +40,9 @@ def main():
         
     
     if filename.endswith('.sql'):
-        #sqlObj = sqlData()
-        #report_data = sqlObj.run(rules_dict, sql_df)
+        # sqlObj = sqlData()
+        #sql_df = sqlObj.sqldb_to_df(self, host, user, password, database, table, rules_dict)
+        #report_data = sqlObj.run(self, rules_dict, sql_df)
         #sqlObj.write_report(report_data)
 
     if filename.endswith('.csv'):
