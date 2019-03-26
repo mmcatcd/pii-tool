@@ -29,8 +29,21 @@ def main():
     parser = argparse.ArgumentParser(description = "PII detection tool")
     parser.add_argument("-i", dest = "filename", required = True, help = "input json file", metavar = "FILE",
                          type = lambda x: is_valid_file(parser, x))
+    parser.add_argument("-i", host = "host", user = "user", password = "password", database = "database", table = "table", required = False, help = "Input host, user, password, database and table.")
+    parser.add_argument("-h", dest = "hostname", required= False, type = str)
+    parser.add_argument("-u", dest="username", required=False, type=str)
+    parser.add_argument("-p", dest="password", required=False, type=str)
+    parser.add_argument("-d", dest="database", required=False, type=str)
+    parser.add_argument("-t", dest="hostname", required=False, type=str)
     args = parser.parse_args()
     filename = args.filename.name
+    host = args.host.name
+    user = args.user.name
+    password = args.password.name
+    database = args.database.name
+    table = args.database.name
+
+
     rules_dict = rules()   #rules from rules file
 
     if filename.endswith('.json'):
