@@ -5,3 +5,4 @@ report.txt
 ins.csv
 *.json
 *.sql
+wget-log
