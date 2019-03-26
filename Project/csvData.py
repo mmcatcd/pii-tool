@@ -36,9 +36,9 @@ class csvData:
         report_data = []
         confidence_values = []
         vals = []
+        overall = []
         max_rule = 0.0
         min_rule = 1.0
-        #variances = []
 
         ## rule based approach
         for rule in rules_dict:
@@ -86,22 +86,16 @@ class csvData:
 
         overall_mean = np.array(vals).mean()
         variances = self.calculate_variances(overall_mean, vals)
-        #confidence_values.append("Overall Mean Sensitivity Score: " + overall_average)
-        #overall_max = str(np.sum(np.array(vals)) * len(df.index))
-        #confidence_values.append("Overall Max Sensitivity Score: " + overall_max )
-        #overall_min = str(np.sum(np.array(vals)))
-        #confidence_values.append("Overall Min Sensitivity Score: " + overall_min + "\n")
-        print(max_rule, min_rule)
-        print("Overall mean: " + str(overall_mean))
-        
+        overall.append("Mean Score: " + str(overall_mean))
+        overall.append("Max Score: " + str(max_rule))
+        overall.append("Min Score: " + str(min_rule))
    
-        self.write_report(report_data, confidence_values, variances)
+        self.write_report(report_data, confidence_values, variances, overall)
 
 
     def calculate_variances(self, overall_mean, vals):
         variances = []
         temp_vals = vals
-        #print(type(overall_mean), type(temp_vals))
         for val in temp_vals:
             val = (val - overall_mean)**2
         for val in temp_vals:
@@ -109,9 +103,17 @@ class csvData:
         return variances
 
 
-    def write_report(self, report_data, confidence_values, variances):
+    def write_report(self, report_data, confidence_values, variances, overall):
         writefile = open('report.txt', 'w+')
-        [writefile.write(line + "\n") for line in confidence_values]
-        [writefile.write("Variance: " + str(line) + "\n") for line in variances]            
+
+        for x, y in zip(confidence_values, variances):
+            writefile.write(x + "\n")
+            writefile.write("Varience from mean: " + str(y) + "\n")
+            writefile.write("\n")
+        writefile.write("\n")
+
+        [writefile.write(line + "\n") for line in overall]    
+        writefile.write("\n")
+
         [writefile.write(line + "\n") for line in report_data]
 
