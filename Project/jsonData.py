@@ -60,12 +60,11 @@ class jsonData:
 
         return results
 
-
-    def sensitivities(self, running_scores, prefix, field_score, field_score_max, field_score_min, confidence_values):
+    def sensitivities(self, field, field_score, field_score_max, field_score_min, confidence_values, running_scores):
         running_scores.append(field_score)
-        confidence_values.append("Sensitivity Score of field " + "'" + prefix + "' is: " + str(field_score))
-        confidence_values.append("Max Sensitivity Score of field " + "'" + prefix + "' is: " + str(field_score_max))
-        confidence_values.append("Min Sensitivity score of field " + "'" + prefix + "' is: " + str(field_score_min))
+        confidence_values.append("Sensitivity Score of field " + "'" + field + "' is: " + str(field_score))
+        confidence_values.append("Max Sensitivity Score of field " + "'" + field + "' is: " + str(field_score_max))
+        confidence_values.append("Min Sensitivity score of field " + "'" + field + "' is: " + str(field_score_min))
         if field_score >= field_score_max:
             confidence_values.append("LEVEL: CRITICAL" + "\n")
 
@@ -80,15 +79,15 @@ class jsonData:
         nlp = spacy.load('en_core_web_sm')
         report_data = []
         confidence_values = []
-        total_vals = 0
+        entries = 0
+        running_scores = []
 
         ## rule based approach
         for rule in rules_dict:
             field_total = 0
-            entries = 0
             field = ""
             matched_vals = []
-            running_scores = []
+            
             a = open(filename, 'r')
             parser = ijson.parse(a)
             for prefix, event, value in parser:
@@ -99,18 +98,17 @@ class jsonData:
                         r = re.compile(rules_dict.get(rule))
                         if r.match(value):
                             matched_vals.append(value)
-                            total_vals += 1
                             string = "Location: %s, Value: %s" % (prefix, value)
                             report_data.append(string)
                             field = prefix
 
             ## individual field scores
-            score_dict = self.search_dicts(rule, scores)
-            print(matched_vals)
-            field_score = float(score_dict.get(rule)) * len(matched_vals)
-            field_score_max = float(score_dict.get(rule)) * field_total
-            field_score_min = float(score_dict.get(rule))
-            self.sensitivities(running_scores, field, field_score, field_score_max, field_score_min, confidence_values)
+            if field != "":
+                score_dict = self.search_dicts(rule, scores)
+                field_score = float(score_dict.get(rule)) * len(matched_vals)
+                field_score_max = float(score_dict.get(rule)) * field_total
+                field_score_min = float(score_dict.get(rule))
+                self.sensitivities(field, field_score, field_score_max, field_score_min, confidence_values, running_scores)
 
         ## overall score
         overall_average = str(np.array(running_scores).mean() * entries)
@@ -139,4 +137,3 @@ class jsonData:
         writefile = open('report.txt', 'w+')
         [writefile.write(line + "\n") for line in confidence_values]
         [writefile.write(line + "\n") for line in report_data]
-

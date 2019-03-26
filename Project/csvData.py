@@ -2,7 +2,6 @@ import re
 import pandas as pd
 import numpy as np
 import spacy
-import dask.dataframe as dd
 
 class csvData:
 
@@ -62,7 +61,7 @@ class csvData:
                             matched_vals = list(set(filter(r.match, df[column])))
 
                         score_dict = self.search_dicts(rule, scores)
-                        column_score =  float(score_dict.get(rule)) * len(matched_vals)
+                        column_score = float(score_dict.get(rule)) * len(matched_vals)
                         column_score_max = float(score_dict.get(rule)) * len(df.index)
                         column_score_min = float(score_dict.get(rule))
                         self.sensitivities(column, column_score, column_score_max, column_score_min, confidence_values, vals)
@@ -97,7 +96,6 @@ class csvData:
 
     def write_report(self, report_data, confidence_values):
         writefile = open('report.txt', 'w+')
-        for line in confidence_values:
-            writefile.write(line + "\n")
-        for line in report_data:
-            writefile.write(line + "\n")
+        [writefile.write(line + "\n") for line in confidence_values]
+        [writefile.write(line + "\n") for line in report_data]
+
