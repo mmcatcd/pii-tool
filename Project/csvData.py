@@ -24,20 +24,9 @@ class csvData:
             if key in item.keys():
                 return item
 
-    def sensitivities(self, column, column_score, column_score_max, column_score_min, confidence_values, vals):
+    def sensitivities(self, column, column_score, confidence_values, vals):
         vals.append(column_score)
         confidence_values.append("Sensitivity Score of field " + "'" + column + "' is: " + str(column_score))
-        confidence_values.append("Max Sensitivity Score of field " + "'" + column + "' is: " + str(column_score_max))
-        confidence_values.append("Min Sensitivity score of field " + "'" + column + "' is: " + str(column_score_min))
-        if column_score >= column_score_max:
-            confidence_values.append("LEVEL: CRITICAL" + "\n")
-
-        elif column_score < column_score_max and column_score > column_score_min:
-            confidence_values.append("LEVEL: MEDIUM" + "\n")
-
-        elif column_score <= column_score_min:
-            confidence_values.append("LEVEL: LOW" + "\n")
-
 
 
     def run(self, rules_dict, scores, filename):
@@ -47,6 +36,9 @@ class csvData:
         report_data = []
         confidence_values = []
         vals = []
+        overall = []
+        max_rule = 0.0
+        min_rule = 1.0
 
         ## rule based approach
         for rule in rules_dict:
@@ -61,11 +53,21 @@ class csvData:
                             matched_vals = list(set(filter(r.match, df[column])))
 
                         score_dict = self.search_dicts(rule, scores)
-                        column_score = float(score_dict.get(rule)) * len(matched_vals)
-                        column_score_max = float(score_dict.get(rule)) * len(df.index)
-                        column_score_min = float(score_dict.get(rule))
-                        self.sensitivities(column, column_score, column_score_max, column_score_min, confidence_values, vals)
+                        column_score = float(score_dict.get(rule))
+
+                        if column_score > max_rule:
+                            max_rule = column_score
+
+                        if column_score < min_rule:
+                            min_rule = column_score
+
+                        #print(matched_vals, column)
+                        if matched_vals:
+                            column_score = (column_score * len(matched_vals)) / len(matched_vals) # for individual field
                         
+                        self.sensitivities(column, column_score, confidence_values, vals)
+
+                        #print(column_score)
                         for val in matched_vals:
                             string = "Location from rule based search: %s, Value: %s" % (column + str(np.where(df[column]==val)[0] + 1), val) 
                             report_data.append(string)
@@ -82,20 +84,36 @@ class csvData:
                             report_data.append(string)
                             # print(ent.text, ent.start_char, ent.end_char, ent.label_)
 
-        overall_average = str(np.array(vals).mean() * len(df.index))
-        confidence_values.append("Overall Mean Sensitivity Score: " + overall_average)
-        overall_max = str(np.sum(np.array(vals)) * len(df.index))
-        confidence_values.append("Overall Max Sensitivity Score: " + overall_max )
-        overall_min = str(np.sum(np.array(vals)))
-        confidence_values.append("Overall Min Sensitivity Score: " + overall_min + "\n")
-
+        overall_mean = np.array(vals).mean()
+        variances = self.calculate_variances(overall_mean, vals)
+        overall.append("Mean Score: " + str(overall_mean))
+        overall.append("Max Score: " + str(max_rule))
+        overall.append("Min Score: " + str(min_rule))
    
-        self.write_report(report_data, confidence_values)
+        self.write_report(report_data, confidence_values, variances, overall)
 
 
+    def calculate_variances(self, overall_mean, vals):
+        variances = []
+        temp_vals = vals
+        for val in temp_vals:
+            val = (val - overall_mean)**2
+        for val in temp_vals:
+            variances.append(val/len(vals))
+        return variances
 
-    def write_report(self, report_data, confidence_values):
+
+    def write_report(self, report_data, confidence_values, variances, overall):
         writefile = open('report.txt', 'w+')
-        [writefile.write(line + "\n") for line in confidence_values]
+
+        for x, y in zip(confidence_values, variances):
+            writefile.write(x + "\n")
+            writefile.write("Varience from mean: " + str(y) + "\n")
+            writefile.write("\n")
+        writefile.write("\n")
+
+        [writefile.write(line + "\n") for line in overall]    
+        writefile.write("\n")
+
         [writefile.write(line + "\n") for line in report_data]
 

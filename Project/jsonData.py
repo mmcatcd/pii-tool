@@ -9,13 +9,13 @@ class jsonData:
 
     def print_full(self, x):    # function that prints full dataframe for display/debugging purposes
         pd.set_option('display.max_rows', len(x))
-        pd.set_option('display.max_fields', None)
+        pd.set_option('display.max_columns', None)
         pd.set_option('display.width', 2000)
         pd.set_option('display.float_format', '{:20,.2f}'.format)
         pd.set_option('display.max_colwidth', -1)
         print(x)
         pd.reset_option('display.max_rows')
-        pd.reset_option('display.max_fields')
+        pd.reset_option('display.max_columns')
         pd.reset_option('display.width')
         pd.reset_option('display.float_format')
         pd.reset_option('display.max_colwidth')
@@ -39,6 +39,7 @@ class jsonData:
         flatten(y)
         return out
 
+
     def search_dicts(self, key, list_of_dicts):
         for item in list_of_dicts:
             if key in item.keys():
@@ -50,29 +51,30 @@ class jsonData:
         flat = self.flatten_json(jsonObj)
 
         results = pd.DataFrame()
-        fields_list = list(flat.keys())
-        for item in fields_list:
+        columns_list = list(flat.keys())
+        for item in columns_list:
             row_idx = re.findall(r'\_(\d+)\_', item )[0]
-            field = item.replace('_'+row_idx+'_', '_')
+            column = item.replace('_'+row_idx+'_', '_')
             row_idx = int(row_idx)
             value = flat[item]
-            results.loc[row_idx, field] = value
+            results.loc[row_idx, column] = value
 
         return results
 
-    def sensitivities(self, field, field_score, field_score_max, field_score_min, confidence_values, running_scores):
+
+    def sensitivities(self, field, field_score, confidence_values, running_scores):
         running_scores.append(field_score)
         confidence_values.append("Sensitivity Score of field " + "'" + field + "' is: " + str(field_score))
-        confidence_values.append("Max Sensitivity Score of field " + "'" + field + "' is: " + str(field_score_max))
-        confidence_values.append("Min Sensitivity score of field " + "'" + field + "' is: " + str(field_score_min))
-        if field_score >= field_score_max:
-            confidence_values.append("LEVEL: CRITICAL" + "\n")
-
-        if field_score < field_score_max and field_score > field_score_min:
-            confidence_values.append("LEVEL: MEDIUM" + "\n")
-
-        if field_score <= field_score_min:
-            confidence_values.append("LEVEL: LOW" + "\n")
+    
+    
+    def calculate_variances(self, overall_mean, running_scores):
+        variances = []
+        temp_vals = running_scores
+        for val in temp_vals:
+            val = (val - overall_mean)**2
+        for val in temp_vals:
+            variances.append(val/len(running_scores))
+        return variances
 
 
     def run(self, rules_dict, scores, filename):
@@ -81,6 +83,10 @@ class jsonData:
         confidence_values = []
         entries = 0
         running_scores = []
+        variances = []
+        overall = []
+        min_rule = 1.0
+        max_rule = 0
 
         ## rule based approach
         for rule in rules_dict:
@@ -105,19 +111,22 @@ class jsonData:
             ## individual field scores
             if field != "":
                 score_dict = self.search_dicts(rule, scores)
-                field_score = float(score_dict.get(rule)) * len(matched_vals)
-                field_score_max = float(score_dict.get(rule)) * field_total
-                field_score_min = float(score_dict.get(rule))
-                self.sensitivities(field, field_score, field_score_max, field_score_min, confidence_values, running_scores)
+                field_score = float(score_dict.get(rule))
+                if field_score > max_rule:
+                    max_rule = field_score
+                
+                if field_score < min_rule:
+                    min_rule = field_score
+
+                field_score = float(score_dict.get(rule)) * len(matched_vals) / len(matched_vals)
+                self.sensitivities(field, field_score, confidence_values, running_scores)
 
         ## overall score
-        overall_average = str(np.array(running_scores).mean() * entries)
-        confidence_values.append("Overall Mean Sensitivity Score: " + overall_average)
-        overall_max = str(np.sum(np.array(running_scores)) * entries)
-        confidence_values.append("Overall Max Sensitivity Score: " + overall_max )
-        overall_min = str(np.sum(np.array(running_scores)))
-        confidence_values.append("Overall Min Sensitivity Score: " + overall_min + "\n")
-
+        overall_mean = np.array(running_scores).mean()
+        variances = self.calculate_variances(overall_mean, running_scores)
+        overall.append("Mean Score: " + str(overall_mean))
+        overall.append("Max Score: " + str(max_rule))
+        overall.append("Min Score: " + str(min_rule))
 
         ## NLP based approach
         a = open(filename, 'r')
@@ -130,10 +139,19 @@ class jsonData:
                         string = "POSSIBLE PII @: %s, Value: %s" % (prefix, value)
                         report_data.append(string)
                         
-        self.write_report(report_data, confidence_values)    
+        self.write_report(report_data, confidence_values, variances, overall)    
 
 
-    def write_report(self, report_data, confidence_values):
+    def write_report(self, report_data, confidence_values, variances, overall):
         writefile = open('report.txt', 'w+')
-        [writefile.write(line + "\n") for line in confidence_values]
+
+        for x, y in zip(confidence_values, variances):
+            writefile.write(x + "\n")
+            writefile.write("Varience from mean: " + str(y) + "\n")
+            writefile.write("\n")
+        writefile.write("\n")
+
+        [writefile.write(line + "\n") for line in overall]    
+        writefile.write("\n")
+
         [writefile.write(line + "\n") for line in report_data]
