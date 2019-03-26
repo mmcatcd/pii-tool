@@ -3,6 +3,7 @@ import os
 from jsonData import jsonData
 from csvData import csvData
 
+sensitivity_scores = []
 
 def is_valid_file(parser, arg):
     if not os.path.exists(arg):
@@ -11,44 +12,52 @@ def is_valid_file(parser, arg):
         return open(arg, 'r') # return an open file handle
 
 
-def rules():   # function that takes rules from file and turns them into a dictionary of format rule:RegEx
+def rules():   # function that takes rules from file
     try:
         f = open('rules.txt', 'r')
         rules_dict = {}
         for line in f:
-            k, v = line.strip().split('->')
+            k, v, s = line.strip().split('->', 2)
             rules_dict[k.strip()] = v.strip()
+            sensitivity_scores.append({k.strip():s.strip()})
         f.close()
         return rules_dict
     except ValueError:
-        print("ERROR: Make sure rules are in the form 'rule -> regex' and try again")
+        print("ERROR: Make sure rules are in the form 'rule -> regex -> sensitivity score' and try again")
         quit()
     
 
 def main():
     parser = argparse.ArgumentParser(description = "PII detection tool")
-    parser.add_argument("-i", dest = "filename", required = True, help = "input json file", metavar = "FILE",
+    parser.add_argument("-i", dest = "filename", required = False, help = "input a data file", metavar = "FILE",
                          type = lambda x: is_valid_file(parser, x))
     args = parser.parse_args()
-    filename = args.filename.name
+    try:
+        filename = args.filename.name
+    except AttributeError:
+        pass
+    
     rules_dict = rules()   #rules from rules file
-
     if filename.endswith('.json'):
         jsonObj = jsonData()
-        report_data = jsonObj.run(rules_dict, filename)
-        jsonObj.write_report(report_data)
+        jsonObj.run(rules_dict, sensitivity_scores, filename)
         
-    
+        
     if filename.endswith('.sql'):
+<<<<<<< HEAD
         # sqlObj = sqlData()
         #sql_df = sqlObj.sqldb_to_df(self, host, user, password, database, table, rules_dict)
         #report_data = sqlObj.run(self, rules_dict, sql_df)
+=======
+        print("")
+        #sqlObj = sqlData()
+        #report_data = sqlObj.run(rules_dict, sql_df)
+>>>>>>> rvailnaveed
         #sqlObj.write_report(report_data)
 
     if filename.endswith('.csv'):
         csvObj = csvData()
-        report_data = csvObj.run(rules_dict, filename)
-        csvObj.write_report(report_data)
+        csvObj.run(rules_dict, sensitivity_scores, filename)
 
     args.filename.close()
 
