@@ -21,17 +21,25 @@ class main:
         col_schema_result = mycursor.fetchall() # fetchall() method fetches all rows from the last execute statement
 
         col_count = 0
+        match_count = 0
         for col_schema_line in col_schema_result:
-            col_count +=1
-            for rule in rules_dict: ###
+            print(col_schema_line)
+            col_count += 1
+            for rule in rules_dict:  ###
                 if rule in col_schema_line:
                     print(rule, "located at column ", col_count)
                     mycursor.execute("SELECT " + rule + " FROM " + table)
-                    data = mycursor.fetchall()
-                    sql_df = pd.DataFrame(data) # panda data frame set up
-                    #print(sql_df)
+                    if match_count == 0:
+                        data = {rule: pd.Series(mycursor.fetchall())}
+                    else:
+                        data[rule] = pd.Series(mycursor.fetchall())
 
-        return sql_df # a df for pii tool to check
+                    match_count += 1
+
+            sql_df = pd.DataFrame(data)  # panda data frame set up
+            # print(sql_df)
+
+            return sql_df
 
 
     def run(self, rules_dict, sql_df): ##
