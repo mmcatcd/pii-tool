@@ -127,18 +127,7 @@ class jsonData:
         overall.append("Mean Score: " + str(overall_mean))
         overall.append("Max Score: " + str(max_rule))
         overall.append("Min Score: " + str(min_rule))
-
-        ## NLP based approach
-        a = open(filename, 'r')
-        parser = ijson.parse(a)
-        for prefix, event, value in parser:
-            if isinstance(value, str):
-                doc = nlp(value)
-                for ent in doc.ents:
-                    if ent.label_ == 'PERSON':
-                        string = "POSSIBLE PII @: %s, Value: %s" % (prefix, value)
-                        report_data.append(string)
-                        
+            
         self.write_report(report_data, confidence_values, variances, overall)    
 
 

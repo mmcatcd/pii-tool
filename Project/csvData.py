@@ -73,16 +73,6 @@ class csvData:
                             report_data.append(string)
 
 
-        ## NLP approach
-        for column in df.columns:
-            for val in df[column]:
-                if df[column].dtype != np.float64 and df[column].dtype != np.int64:
-                    doc = nlp(val)
-                    for ent in doc.ents:
-                        if ent.label_ == 'PERSON':
-                            string = "POSSIBLE PII @: %s, Value: %s" % (column + str(np.where(df[column]==val)[0] + 1), val) 
-                            report_data.append(string)
-                            # print(ent.text, ent.start_char, ent.end_char, ent.label_)
 
         overall_mean = np.array(vals).mean()
         variances = self.calculate_variances(overall_mean, vals)
