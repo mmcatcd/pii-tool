@@ -2,6 +2,7 @@ import argparse
 import os
 from jsonData import jsonData
 from csvData import csvData
+from timeit import default_timer as timer
 
 sensitivity_scores = []
 
@@ -23,7 +24,7 @@ def rules():   # function that takes rules from file
         f.close()
         return rules_dict
     except ValueError:
-        print("ERROR: Make sure rules are in the form 'rule -> regex -> sensitivity score' and try again")
+        print("ERROR: Make sure rules are in the form 'rule -> regex -> sensitivity' and try again")
         quit()
     
 
@@ -40,7 +41,10 @@ def main():
     rules_dict = rules()   #rules from rules file
     if filename.endswith('.json'):
         jsonObj = jsonData()
+        start = timer()
         jsonObj.run(rules_dict, sensitivity_scores, filename)
+        end = timer()
+        print("Time for '" + filename + "': " + str(end-start))
         
         
     if filename.endswith('.sql'):
@@ -51,9 +55,9 @@ def main():
         #sqlObj.write_report(report_data)
 
     if filename.endswith('.csv'):
-        csvObj = csvData()
-        csvObj.run(rules_dict, sensitivity_scores, filename)
-
+        csvObj = csvData(filename)
+        csvObj.run(rules_dict, sensitivity_scores)
+      
     args.filename.close()
 
 if __name__ == '__main__':

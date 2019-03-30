@@ -1,11 +1,13 @@
 import pandas as pd
 import re
 import ijson
-import spacy
 import json
 import numpy as np
 
 class jsonData:
+
+    def __init__(self):
+        pass
 
     def print_full(self, x):    # function that prints full dataframe for display/debugging purposes
         pd.set_option('display.max_rows', len(x))
@@ -78,10 +80,8 @@ class jsonData:
 
 
     def run(self, rules_dict, scores, filename):
-        nlp = spacy.load('en_core_web_sm')
         report_data = []
         confidence_values = []
-        entries = 0
         running_scores = []
         variances = []
         overall = []
@@ -90,19 +90,17 @@ class jsonData:
 
         ## rule based approach
         for rule in rules_dict:
-            field_total = 0
             field = ""
             matched_vals = []
             
             a = open(filename, 'r')
             parser = ijson.parse(a)
             for prefix, event, value in parser:
-                entries += 1
                 if re.search(rule, prefix, re.IGNORECASE):
-                    field_total += 1
                     if rules_dict.get(rule) != '':
                         r = re.compile(rules_dict.get(rule))
                         if r.match(value):
+                            print(value)
                             matched_vals.append(value)
                             string = "Location: %s, Value: %s" % (prefix, value)
                             report_data.append(string)

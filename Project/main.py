@@ -3,10 +3,12 @@ import pandas as pd
 import re
 
 class main:
+    df = None
 
     def __init__(self):
-
-# connect to database
+        self.df = pd.DataFrame()
+    
+    # connect to database
     def sqldb_to_df(self, host, user, password, database, table, rules_dict):
         mydb = mysql.connector.connect(
             host=host,  #"localhost" #127.0.0.1
@@ -36,17 +38,16 @@ class main:
 
                     match_count += 1
 
-            sql_df = pd.DataFrame(data)  # panda data frame set up
+            self.df = pd.DataFrame(data)  # panda data frame set up
             # print(sql_df)
 
-            return sql_df
+            #return sql_df
 
-
-    def run(self, rules_dict, sql_df): ##
+    def run(self, rules_dict): ##
         report_data = []
         for rule in rules_dict:
             index = 0
-            for key, value in sql_df.iteritems():
+            for key, value in self.df.iteritems():
                 if re.search(rule, key, re.IGNORECASE):
                     if rules_dict.get(rule) != '':
                         r = re.compile(rules_dict.get(rule))
