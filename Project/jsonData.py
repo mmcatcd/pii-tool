@@ -6,7 +6,11 @@ import numpy as np
 import csv
 
 class jsonData:
-
+    percent_critical = 0
+    percent_high = 0
+    percent_medium = 0
+    percent_low = 0
+    total = 0
     def __init__(self):
         pass
 
@@ -65,20 +69,26 @@ class jsonData:
         return results
 
 
-    def get_level(self, level, low, medium, high, critical, score):
+
+    def get_level(self, level, low, medium, high, critical, score, matched_vals):
         if score == critical:
             level = 'CRITICAL'
+            self.percent_critical += (matched_vals)
 
         if score >= high and score < critical:
             level = 'HIGH'
+            self.percent_high += (matched_vals)
 
         if score >= medium and score < high:
             level = 'MEDIUM'
+            self.percent_medium += (matched_vals)
                         
         if score <= low:
             level = 'LOW'
+            self.percent_low += (matched_vals)
 
         return level
+        
 
     def add_variances(self, overall_mean, vals, per_column):
         variances = []
@@ -97,7 +107,7 @@ class jsonData:
     def run(self, rules_dict, scores, filename):
         report_data = []
         per_column = []
-        report_data = [['Rule matched', 'Field', 'Value', 'Mean', 'Max', 'Min', 'Rule matched', 'Field', 'Score', 'Level', 'Variance']]
+        report_data = [['Rule matched', 'Field', 'Value', 'Mean', 'Max', 'Min', '%Critical', '%High', '%Medium', '%Low', 'Rule matched', 'Field', 'Score', 'Level', 'Variance']]
         overall = []
         running_scores = []
 
@@ -117,6 +127,7 @@ class jsonData:
             a = open(filename, 'r')
             parser = ijson.parse(a)
             for prefix, event, value in parser:
+                self.total += 1
                 if re.search(rule, prefix, re.IGNORECASE):
                     if rules_dict.get(rule) != '':
                         r = re.compile(rules_dict.get(rule))
@@ -138,14 +149,21 @@ class jsonData:
                     min_rule = field_score
 
                 field_score = float(score_dict.get(rule)) * matched_vals / matched_vals
-                level = self.get_level(level, low, medium, high, critical, field_score)
+                level = self.get_level(level, low, medium, high, critical, field_score, matched_vals)
                 per_column.append([matched_rule, field, field_score, level])
                 running_scores.append(field_score)
         
         ## overall score
+        self.percent_critical = round(self.percent_critical/self.total, 3) * 100
+        self.percent_high = round(self.percent_high/self.total, 3) * 100
+        self.percent_medium = round(self.percent_high/self.total, 3) * 100
+        self.percent_low = round(self.percent_low/self.total, 3) * 100
+        percentages = [self.percent_critical, self.percent_high, self.percent_medium, self.percent_low]
+        
         overall_mean = round(np.array(running_scores).mean(), 3)
         per_column = self.add_variances(overall_mean, running_scores, per_column) # rule, field, score, level, variance
         overall.extend([str(overall_mean), str(max_rule), str(min_rule)]) # mean, max, min
+        overall.extend(percentages) # mean, max, min, percentages
         overall.extend(per_column[0]) # mean, max, min rule, field, score, level, variance
         temp = list(filter(None, report_data[1]))
         temp.extend(overall)
@@ -154,7 +172,7 @@ class jsonData:
 
         for col_data in per_column:
             temp = list(filter(None, report_data[i]))
-            blanks = ['', '', '']
+            blanks = ['', '', '', '', '', '', '']
             temp.extend(blanks)
             temp.extend(col_data)
             report_data[i] = temp
