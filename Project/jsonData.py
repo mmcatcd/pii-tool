@@ -3,6 +3,7 @@ import re
 import ijson
 import json
 import numpy as np
+import csv
 
 class jsonData:
 
@@ -64,34 +65,54 @@ class jsonData:
         return results
 
 
-    def sensitivities(self, field, field_score, confidence_values, running_scores):
-        running_scores.append(field_score)
-        confidence_values.append("Sensitivity Score of field " + "'" + field + "' is: " + str(field_score))
-    
-    
-    def calculate_variances(self, overall_mean, running_scores):
+    def get_level(self, level, low, medium, high, critical, score):
+        if score == critical:
+            level = 'CRITICAL'
+
+        if score >= high and score < critical:
+            level = 'HIGH'
+
+        if score >= medium and score < high:
+            level = 'MEDIUM'
+                        
+        if score <= low:
+            level = 'LOW'
+
+        return level
+
+    def add_variances(self, overall_mean, vals, per_column):
         variances = []
-        temp_vals = running_scores
+        temp_vals = vals
+        i = 0
         for val in temp_vals:
             val = (val - overall_mean)**2
         for val in temp_vals:
-            variances.append(val/len(running_scores))
-        return variances
+            variances.append(round(val/len(vals), 3))
+        for l in per_column:
+            l.append(variances[i])
+            i += 1
+        return per_column
 
 
     def run(self, rules_dict, scores, filename):
         report_data = []
-        confidence_values = []
-        running_scores = []
-        variances = []
+        per_column = []
+        report_data = [['Rule matched', 'Field', 'Value', 'Mean', 'Max', 'Min', 'Rule matched', 'Field', 'Score', 'Level', 'Variance']]
         overall = []
+        running_scores = []
+
         min_rule = 1.0
         max_rule = 0
+        critical = 1.0
+        high = 0.8
+        medium = 0.4
+        low = 0.3
+        level = 'UNDETERMINED'
 
         ## rule based approach
         for rule in rules_dict:
             field = ""
-            matched_vals = []
+            matched_vals = 0
             
             a = open(filename, 'r')
             parser = ijson.parse(a)
@@ -100,11 +121,11 @@ class jsonData:
                     if rules_dict.get(rule) != '':
                         r = re.compile(rules_dict.get(rule))
                         if r.match(value):
-                            print(value)
-                            matched_vals.append(value)
-                            string = "Location: %s, Value: %s" % (prefix, value)
-                            report_data.append(string)
+                            matched_vals += 1
+                            #string = "Location: %s, Value: %s" % (prefix, value)
+                            report_data.append([rule, prefix, value, "", "", "", "", "", "", ""])
                             field = prefix
+                            matched_rule = rule
 
             ## individual field scores
             if field != "":
@@ -116,29 +137,33 @@ class jsonData:
                 if field_score < min_rule:
                     min_rule = field_score
 
-                field_score = float(score_dict.get(rule)) * len(matched_vals) / len(matched_vals)
-                self.sensitivities(field, field_score, confidence_values, running_scores)
-
+                field_score = float(score_dict.get(rule)) * matched_vals / matched_vals
+                level = self.get_level(level, low, medium, high, critical, field_score)
+                per_column.append([matched_rule, field, field_score, level])
+                running_scores.append(field_score)
+        
         ## overall score
-        overall_mean = np.array(running_scores).mean()
-        variances = self.calculate_variances(overall_mean, running_scores)
-        overall.append("Mean Score: " + str(overall_mean))
-        overall.append("Max Score: " + str(max_rule))
-        overall.append("Min Score: " + str(min_rule))
-            
-        self.write_report(report_data, confidence_values, variances, overall)    
+        overall_mean = round(np.array(running_scores).mean(), 3)
+        per_column = self.add_variances(overall_mean, running_scores, per_column) # rule, field, score, level, variance
+        overall.extend([str(overall_mean), str(max_rule), str(min_rule)]) # mean, max, min
+        overall.extend(per_column[0]) # mean, max, min rule, field, score, level, variance
+        temp = list(filter(None, report_data[1]))
+        temp.extend(overall)
+        report_data[1] = temp
+        i = 2
+
+        for col_data in per_column:
+            temp = list(filter(None, report_data[i]))
+            blanks = ['', '', '']
+            temp.extend(blanks)
+            temp.extend(col_data)
+            report_data[i] = temp
+            i += 1
+
+        self.write_report(report_data)    
 
 
-    def write_report(self, report_data, confidence_values, variances, overall):
-        writefile = open('report.txt', 'w+')
-
-        for x, y in zip(confidence_values, variances):
-            writefile.write(x + "\n")
-            writefile.write("Varience from mean: " + str(y) + "\n")
-            writefile.write("\n")
-        writefile.write("\n")
-
-        [writefile.write(line + "\n") for line in overall]    
-        writefile.write("\n")
-
-        [writefile.write(line + "\n") for line in report_data]
+    def write_report(self, report_data):
+        writefile = open('report.csv', 'w+')
+        writer = csv.writer(writefile)
+        writer.writerows(report_data)

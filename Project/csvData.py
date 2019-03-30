@@ -44,11 +44,7 @@ class csvData:
             level = 'LOW'
 
         return level
-
-    def sensitivities(self, column, column_score, confidence_values, vals):
-        vals.append(column_score)
-        confidence_values.append("Sensitivity Score of field " + "'" + column + "' is: " + str(column_score))
-
+        
 
     def run(self, rules_dict, scores):
         self.df = self.df.applymap(str)         # preprocessing of dataframe
