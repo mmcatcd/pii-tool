@@ -1,7 +1,6 @@
 import re
 import pandas as pd
 import numpy as np
-import spacy
 import csv
 from pprint import pprint
 
@@ -94,7 +93,6 @@ class csvData:
                         
                         level = self.get_level(level, low, medium, high, critical, column_score, matched_vals)
                         #levels.append(level)
-                        print(self.percent_critical)
                         per_column.append([rule, column, column_score, level])
                         vals.append(column_score)
 
