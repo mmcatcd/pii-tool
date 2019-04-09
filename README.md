@@ -45,6 +45,8 @@ For CSV and JSON files make sure the file is in the same directory as the main p
 
 Example usage:
 
+Add some rules to the rules. txt file in the Project Folder (Create your own or use some from the provided European RegEx.csv) and then: 
+
 ```
 python3 PII_tool.py -i employees.json
 ```
