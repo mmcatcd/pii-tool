@@ -170,6 +170,16 @@ class jsonData:
         report_data[1] = temp
         i = 2
 
+        # ## NLP based approach attempt
+        # a = open(filename, 'r')
+        # parser = ijson.parse(a)
+        # for prefix, event, value in parser:
+        #     if isinstance(value, str):
+        #         doc = nlp(value)
+        #         for ent in doc.ents:
+        #             if ent.label_ == 'PERSON':
+        #                 string = "POSSIBLE PII @: %s, Value: %s" % (prefix, value)
+    
         for col_data in per_column:
             temp = list(filter(None, report_data[i]))
             blanks = ['', '', '', '', '', '', '']

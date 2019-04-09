@@ -48,15 +48,15 @@ Example usage:
 Add some rules to the rules. txt file in the Project Folder (Create your own or use some from the provided European RegEx.csv) and then: 
 
 ```
-python3 PII_tool.py -i employees.json
+python3 pii_tool.py -i tests/employees.json
 ```
 
 ```
-python3 PII_tool.py -i people.csv
+python3 pii_tool.py -i tests/people.csv
 ```
 
 ```
-python3 PII_tool.y -d hostname username database tablename
+python3 pii_tool.y -d hostname username database tablename
 ```
 
 
