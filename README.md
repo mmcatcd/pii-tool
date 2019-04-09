@@ -46,15 +46,15 @@ For CSV and JSON files make sure the file is in the same directory as the main p
 Example usage:
 
 ```
-python3 pii_tool.py -i employees.json
+python3 PII_tool.py -i employees.json
 ```
 
 ```
-python3 pii_tool.py -i people.csv
+python3 PII_tool.py -i people.csv
 ```
 
 ```
-python3 pii_tool -h hostname -n dbname -u username -p password
+python3 PII_tool.y -d hostname username database tablename
 ```
 
 
