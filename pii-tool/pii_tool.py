@@ -2,6 +2,7 @@ import argparse
 import os
 from jsonData import jsonData
 from csvData import csvData
+from sqlData import sqlData
 from timeit import default_timer as timer
 
 sensitivity_scores = []
@@ -32,11 +33,12 @@ def main():
     parser = argparse.ArgumentParser(description = "PII detection tool")
     parser.add_argument("-i", dest = "filename", required = False, help = "input a data file", metavar = "FILE",
                          type = lambda x: is_valid_file(parser, x))
+    parser.add_argument("-d", dest="db", nargs=4, required=False, type=str)
     args = parser.parse_args()
-    try:
+    filename = ""
+    if args.filename :
         filename = args.filename.name
-    except AttributeError:
-        pass
+
     
     rules_dict = rules()   #rules from rules file
     if filename.endswith('.json'):
@@ -47,18 +49,16 @@ def main():
         print("Time for '" + filename + "': " + str(end-start))
         
         
-    if filename.endswith('.sql'):
-        print("")
-        # sqlObj = sqlData()
-        #sql_df = sqlObj.sqldb_to_df(self, host, user, password, database, table, rules_dict)
-        #report_data = sqlObj.run(self, rules_dict, sql_df)
-        #sqlObj.write_report(report_data)
+    if args.db:
+        sqlObj = sqlData()
+        sqlObj.sqldb_to_df(args.db, sensitivity_scores, rules_dict)
+
 
     if filename.endswith('.csv'):
         csvObj = csvData(filename)
         csvObj.run(rules_dict, sensitivity_scores)
       
-    args.filename.close()
+    #args.filename.close()
 
 if __name__ == '__main__':
     main()

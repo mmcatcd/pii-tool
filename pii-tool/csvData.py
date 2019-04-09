@@ -93,8 +93,6 @@ class csvData:
                             column_score = (column_score * len(matched_vals)) / len(matched_vals) # for individual field
                         
                         level = self.get_level(level, low, medium, high, critical, column_score, matched_vals)
-                        #levels.append(level)
-                        print(self.percent_critical)
                         per_column.append([rule, column, column_score, level])
                         vals.append(column_score)
 
