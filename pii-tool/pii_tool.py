@@ -43,12 +43,8 @@ def main():
     rules_dict = rules()   #rules from rules file
     if filename.endswith('.json'):
         jsonObj = jsonData()
-        start = timer()
         jsonObj.run(rules_dict, sensitivity_scores, filename)
-        end = timer()
-        print("Time for '" + filename + "': " + str(end-start))
-        
-        
+ 
     if args.db:
         sqlObj = sqlData()
         sqlObj.sqldb_to_df(args.db, sensitivity_scores, rules_dict)
