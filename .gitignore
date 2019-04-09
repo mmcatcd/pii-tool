@@ -1,9 +1,5 @@
 venv/
 .idea/
 __pycache__/
-report.txt
-ins.csv
-*.json
-*.sql
 wget-log
 report.csv
