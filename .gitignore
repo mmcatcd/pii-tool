@@ -6,5 +6,4 @@ ins.csv
 *.json
 *.sql
 wget-log
-tests/
 report.csv
