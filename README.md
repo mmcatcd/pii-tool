@@ -40,12 +40,11 @@ pip install -r requirements.txt
 
 
 ## Usage
-
 For CSV and JSON files make sure the file is in the same directory as the main pii_tool.py file.
 
 Example usage:
 
-Add some rules to the rules. txt file in the Project Folder (Create your own or use some from the provided European RegEx.csv) and then: 
+Add some rules to the rules.txt file in the pii_tool folder (Create your own or use some from the provided European RegEx.csv), making sure that they reflect the data in YOUR source and then: 
 
 ```
 python3 pii_tool.py -i tests/employees.json
